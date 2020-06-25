@@ -6,7 +6,7 @@ fn main(){
         Ok(_) => {
             println!("success! exiting.");
         }
-        Err(_) => {println!("failed.");}
+        Err(e) => {println!("failed with error {}", e);}
     }
 }
 
