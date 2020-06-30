@@ -19,8 +19,7 @@ fn alert() -> std::io::Result<()> {
     }
     println!("hostname: {:?}", hostname);
     let mut stream = TcpStream::connect("192.168.1.144:5432")?;
-    //let to_send = b"hello world";
-let to_send = hostname.into_bytes();
+    let to_send = hostname.into_bytes();
     stream.write(to_send.as_slice())?;
     let mut data = [0 as u8; 50];
     match stream.read(&mut data){
