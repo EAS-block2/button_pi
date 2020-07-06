@@ -7,13 +7,16 @@ use crossbeam_channel::bounded;
 fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     let mut flashing = false;
+    let mut pressed = false;
     let (tx, rx) = bounded(0);
     end_err_flash(tx.clone(), &flashing);
     loop{
     thread::sleep(time::Duration::from_millis(100));
     match button.read_value().unwrap(){
-        gpio::GpioValue::High => (),
+        gpio::GpioValue::High => {pressed = false;},
         gpio::GpioValue::Low => { //a button press actually pulls the pin low
+            if !pressed{
+            pressed = true;
             match alert(){
                 Ok(_) => {
                     println!("success!");
@@ -24,7 +27,7 @@ fn main(){
                     if !flashing {start_err_flash(rx.clone());
                     flashing = true;}
                 println!("flashing due to {}",e);}
-    }}}}
+    }}}}}
 }
 
 fn alert() -> std::io::Result<()> {
