@@ -8,17 +8,16 @@ fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     loop{
     thread::sleep(time::Duration::from_millis(500));
-    println!("GPIO23: {:?}", button.read_value().unwrap());
-    /*match button.read_value().unwrap(){
-        gpio::GpioValue::Low => (),
-        gpio::GpioValue::High => {
+    match button.read_value().unwrap(){
+        gpio::GpioValue::High => (),
+        gpio::GpioValue::Low => { //a button press actually pulls the pin low
             match alert(){
                 Ok(_) => {
                     println!("success! exiting.");
                 }
                 Err(e) => {start_err_flash();
                 println!("flashing due to {}",e);}
-    }}}*/}
+    }}}}
 }
 
 fn alert() -> std::io::Result<()> {
