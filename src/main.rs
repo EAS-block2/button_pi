@@ -27,7 +27,7 @@ fn alert() -> std::io::Result<()> {
         Err(_) => {hostname = "unknown".to_string();}
     }
     println!("hostname: {:?}", hostname);
-    let mut stream = TcpStream::connect("192.168.1.144:5432")?;
+    let mut stream = TcpStream::connect("192.168.1.162:5432")?;
     let to_send = hostname.into_bytes();
     stream.write(to_send.as_slice())?;
     let mut data = [0 as u8; 50];
