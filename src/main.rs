@@ -22,8 +22,7 @@ fn main(){
                 }
                 Err(e) => {println!("ERROR: {}",e);
             on_failure();}
-    }}}}}
-}
+    }}}}}}
 
 fn alert() -> std::io::Result<()> {
     let hostname: String;
@@ -39,13 +38,10 @@ fn alert() -> std::io::Result<()> {
     match stream.read(&mut data){
         Ok(size) => {
            match str::from_utf8(&data[0..size]){
-               Ok(string_out) => {
-                   println!("Got data: {}", string_out);}
-               Err(_) => {println!("fault");}
-           }
-        }
-        Err(_) => {println!("Fault when reading data!");}
-    }
+               Ok(string_out) => {println!("Got data: {}", string_out);}
+               Err(_) => {println!("fault");}}
+            }
+        Err(_) => {println!("Fault when reading data!");}}
     Ok(())
 }
 fn success_flash(){
@@ -66,15 +62,10 @@ fn on_failure(){
         println!("in failure mode");
         counter +=1;
     match alert(){
-        Ok(_) => {
-            println!("finally got connection.");
+        Ok(_) => {println!("finally got connection.");
             success_flash();
-            break;
-        }
+            break;}
         Err(_) => {
-            if counter > 10{
-                Command::new("reboot");
-            }
+            if counter > 10{Command::new("reboot");}
             else{thread::sleep(time::Duration::from_secs(30));}
-        }
-}}}
+        }}}}
