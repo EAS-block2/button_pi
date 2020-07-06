@@ -8,12 +8,12 @@ fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     let mut pressed = false;
     println!("GPIO23: {:?}", button.read_value().unwrap());
-    gpio::sysfs::SysFsGpioOutput::open(21).unwrap().set_value(false).unwrap();
     loop{
+    gpio::sysfs::SysFsGpioOutput::open(21).unwrap().set_value(false).unwrap();
     thread::sleep(time::Duration::from_millis(100));
     match button.read_value().unwrap(){
-        gpio::GpioValue::High => {pressed = false;},
-        gpio::GpioValue::Low => { //a button press actually pulls the pin low
+        gpio::GpioValue::Low => {pressed = false;},
+        gpio::GpioValue::High => { //a button press actually pulls the pin low
             if !pressed{
             pressed = true;
             match alert(){
