@@ -2,13 +2,20 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use dns_lookup;
 use std::str;
+use std::{thread, time};
+use gpio::{GpioIn, GpioOut};
 fn main(){
-    match alert(){
-        Ok(_) => {
-            println!("success! exiting.");
-        }
-        Err(e) => {println!("failed with error {}", e);}
-    }
+    let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
+    loop{
+    match button.read_value().unwrap(){
+        gpio::GpioValue::Low => {println!("button off")}
+        gpio::GpioValue::High => {
+            match alert(){
+                Ok(_) => {
+                    println!("success! exiting.");
+                }
+                Err(_) => {start_err_flash();}
+    }}}}
 }
 
 fn alert() -> std::io::Result<()> {
@@ -33,4 +40,14 @@ fn alert() -> std::io::Result<()> {
         Err(_) => {println!("Fault when reading data!");}
     }
     Ok(())
+}
+
+fn start_err_flash(){
+    let mut value = false;
+    let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
+    thread::spawn(move || loop {
+        light.set_value(value).unwrap();
+        thread::sleep(time::Duration::from_millis(1000));
+        value = !value;
+});
 }
