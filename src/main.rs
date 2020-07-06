@@ -8,7 +8,7 @@ fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     loop{
     match button.read_value().unwrap(){
-        gpio::GpioValue::Low => {println!("button off")}
+        gpio::GpioValue::Low => (),
         gpio::GpioValue::High => {
             match alert(){
                 Ok(_) => {
