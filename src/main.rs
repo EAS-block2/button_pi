@@ -1,21 +1,28 @@
 use std::io::prelude::*;
 use std::net::TcpStream;
 use dns_lookup;
-use std::str;
-use std::{thread, time};
+use std::{thread, time, str};
 use gpio::{GpioIn, GpioOut};
+use crossbeam_channel::bounded;
 fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
+    let mut flashing = false;
+    let (tx, rx) = bounded(0);
+    end_err_flash(tx.clone(), &flashing);
     loop{
-    thread::sleep(time::Duration::from_millis(500));
+    thread::sleep(time::Duration::from_millis(100));
     match button.read_value().unwrap(){
         gpio::GpioValue::High => (),
         gpio::GpioValue::Low => { //a button press actually pulls the pin low
             match alert(){
                 Ok(_) => {
-                    println!("success! exiting.");
+                    println!("success!");
+                    end_err_flash(tx.clone(), &flashing);
+                    flashing = false;
                 }
-                Err(e) => {start_err_flash();
+                Err(e) => {
+                    if !flashing {start_err_flash(rx.clone());
+                    flashing = true;}
                 println!("flashing due to {}",e);}
     }}}}
 }
@@ -43,13 +50,23 @@ fn alert() -> std::io::Result<()> {
     }
     Ok(())
 }
-
-fn start_err_flash(){
+fn end_err_flash(comms: crossbeam_channel::Sender<u8>, idk:& bool){
+    let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
+    light.set_value(false).unwrap();
+    if *idk{
+        comms.send(1).unwrap();
+    }
+}
+fn start_err_flash(comms: crossbeam_channel::Receiver<u8>){
     let mut value = false;
     let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
     thread::spawn(move || loop {
         light.set_value(value).unwrap();
         thread::sleep(time::Duration::from_millis(1000));
         value = !value;
+        match comms.try_recv() {
+            Ok(got) => {if got == 1{break;}}
+            Err(_) => ()
+        }
 });
 }
