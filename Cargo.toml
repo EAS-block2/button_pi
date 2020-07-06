@@ -9,4 +9,3 @@ edition = "2018"
 [dependencies]
 dns-lookup = "1.0.3"
 gpio = "0.4"
-crossbeam-channel = "0.4"

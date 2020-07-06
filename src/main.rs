@@ -1,15 +1,13 @@
 use std::io::prelude::*;
 use std::net::TcpStream;
+use std::process::Command;
 use dns_lookup;
 use std::{thread, time, str};
 use gpio::{GpioIn, GpioOut};
-use crossbeam_channel::bounded;
 fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
-    let mut flashing = false;
     let mut pressed = false;
-    let (tx, rx) = bounded(0);
-    end_err_flash(tx.clone(), &flashing);
+    gpio::sysfs::SysFsGpioOutput::open(21).unwrap().set_value(false).unwrap();
     loop{
     thread::sleep(time::Duration::from_millis(100));
     match button.read_value().unwrap(){
@@ -20,13 +18,10 @@ fn main(){
             match alert(){
                 Ok(_) => {
                     println!("success!");
-                    end_err_flash(tx.clone(), &flashing);
-                    flashing = false;
+                    success_flash();
                 }
-                Err(e) => {
-                    if !flashing {start_err_flash(rx.clone());
-                    flashing = true;}
-                println!("flashing due to {}",e);}
+                Err(e) => {println!("ERROR: {}",e);
+            on_failure();}
     }}}}}
 }
 
@@ -53,23 +48,32 @@ fn alert() -> std::io::Result<()> {
     }
     Ok(())
 }
-fn end_err_flash(comms: crossbeam_channel::Sender<u8>, idk:& bool){
-    let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
-    light.set_value(false).unwrap();
-    if *idk{
-        comms.send(1).unwrap();
-    }
-}
-fn start_err_flash(comms: crossbeam_channel::Receiver<u8>){
+fn success_flash(){
     let mut value = false;
     let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
+    let mut counter = 0;
     thread::spawn(move || loop {
+        counter +=1;
         light.set_value(value).unwrap();
-        thread::sleep(time::Duration::from_millis(1000));
+        thread::sleep(time::Duration::from_millis(250));
         value = !value;
-        match comms.try_recv() {
-            Ok(got) => {if got == 1{break;}}
-            Err(_) => ()
-        }
+        if counter > 480 {break;}
 });
 }
+fn on_failure(){
+    let mut counter = 0;
+    loop{
+        counter +=1;
+    match alert(){
+        Ok(_) => {
+            println!("finally got connection.");
+            success_flash();
+            break;
+        }
+        Err(_) => {
+            if counter > 10{
+                Command::new("reboot");
+            }
+            else{thread::sleep(time::Duration::from_secs(30));}
+        }
+}}}
