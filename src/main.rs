@@ -7,15 +7,18 @@ use gpio::{GpioIn, GpioOut};
 fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     loop{
-    match button.read_value().unwrap(){
+    thread::sleep(time::Duration::from_millis(500));
+    println!("GPIO23: {:?}", button.read_value().unwrap());
+    /*match button.read_value().unwrap(){
         gpio::GpioValue::Low => (),
         gpio::GpioValue::High => {
             match alert(){
                 Ok(_) => {
                     println!("success! exiting.");
                 }
-                Err(_) => {start_err_flash();}
-    }}}}
+                Err(e) => {start_err_flash();
+                println!("flashing due to {}",e);}
+    }}}*/}
 }
 
 fn alert() -> std::io::Result<()> {
