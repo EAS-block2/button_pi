@@ -7,6 +7,7 @@ use gpio::{GpioIn, GpioOut};
 fn main(){
     let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
     let mut pressed = false;
+    println!("GPIO23: {:?}", button.read_value().unwrap());
     gpio::sysfs::SysFsGpioOutput::open(21).unwrap().set_value(false).unwrap();
     loop{
     thread::sleep(time::Duration::from_millis(100));
@@ -63,6 +64,7 @@ fn success_flash(){
 fn on_failure(){
     let mut counter = 0;
     loop{
+        println!("in failure mode");
         counter +=1;
     match alert(){
         Ok(_) => {
