@@ -46,11 +46,15 @@ fn alert() -> std::io::Result<()> {
 }
 fn success_flash(){
     let mut value = false;
-    let mut light = gpio::sysfs::SysFsGpioOutput::open(21).unwrap();
+    let mut light: gpio::sysfs::SysFsGpioOutput;
+    match gpio::sysfs::SysFsGpioOutput::open(21){
+        Ok(e)=> {light = e;}
+        Err(_)=> return,
+    }
     let mut counter = 0;
     thread::spawn(move || loop {
         counter +=1;
-        light.set_value(value).unwrap();
+        match light.set_value(value){ Ok(_)=>(), Err(_) => break}
         thread::sleep(time::Duration::from_millis(250));
         value = !value;
         if counter > 480 {break;}
