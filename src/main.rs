@@ -31,7 +31,6 @@ fn alert() -> std::io::Result<()> {
         Ok(hostn) => {hostname = hostn;}
         Err(_) => {hostname = "unknown".to_string();}
     }
-    println!("hostname: {:?}", hostname);
     let mut stream = TcpStream::connect("192.168.1.162:5432")?;
     let to_send = hostname.into_bytes();
     stream.write(to_send.as_slice())?;
