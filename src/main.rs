@@ -10,6 +10,9 @@ fn main(){
     let mut pressed = false;
 
 spawn_button().unwrap();
+loop{
+    thread::sleep(time::Duration::from_secs(3));
+}
 }
 
 fn alert() -> std::io::Result<()> {
