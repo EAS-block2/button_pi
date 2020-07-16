@@ -8,9 +8,9 @@ fn main(){
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let button = chip.get_line(15).unwrap();
     let mut pressed = false;
-    loop{
-spawn_button();
-    }}
+
+spawn_button().unwrap();
+}
 
 fn alert() -> std::io::Result<()> {
     let hostname: String;
