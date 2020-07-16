@@ -18,7 +18,7 @@ fn main(){
             match alert(){
                 Ok(_) => {
                     println!("success!");
-                    success_flash();
+                    match success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
                 }
                 Err(e) => {println!("ERROR: {}",e);
             on_failure();}
@@ -45,11 +45,11 @@ fn alert() -> std::io::Result<()> {
         Err(_) => {println!("Fault when reading data!");}}
     Ok(())
 }
-fn success_flash(){
+fn success_flash() -> gpio_cdev::errors::Result<()>{
     let mut value = false;
     let mut counter = 0;
-    let mut chip = Chip::new("/dev/gpiochip0").unwrap();
-    let light = chip.get_line(21).unwrap().request(LineRequestFlags::OUTPUT, 1, "Button Light pin").unwrap();
+    let mut chip = Chip::new("/dev/gpiochip0")?;
+    let light = chip.get_line(21)?.request(LineRequestFlags::OUTPUT, 1, "Button Light pin")?;
     thread::spawn(move || loop {
         counter +=1;
         match light.set_value(value as u8){ Ok(_)=>(), Err(_) => break}
@@ -57,6 +57,7 @@ fn success_flash(){
         value = !value;
         if counter > 480 {break;}
 });
+Ok(())
 }
 fn on_failure(){
     let mut counter = 0;
@@ -65,7 +66,7 @@ fn on_failure(){
         counter +=1;
     match alert(){
         Ok(_) => {println!("finally got connection.");
-            success_flash();
+        match success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
             break;}
         Err(_) => {
             if counter > 10{Command::new("reboot");}
