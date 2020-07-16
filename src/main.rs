@@ -3,26 +3,14 @@ use std::net::TcpStream;
 use std::process::Command;
 use dns_lookup;
 use std::{thread, time, str};
-use gpio::{GpioIn, GpioOut};
+use gpio_cdev::{Chip, LineRequestFlags, EventRequestFlags, EventType};
 fn main(){
-    let mut button = gpio::sysfs::SysFsGpioInput::open(15).unwrap();
+    let mut chip = Chip::new("/dev/gpiochip0").unwrap();
+    let button = chip.get_line(15).unwrap();
     let mut pressed = false;
-    gpio::sysfs::SysFsGpioOutput::open(21).unwrap().set_value(false).unwrap();
     loop{
-    thread::sleep(time::Duration::from_millis(100));
-    match button.read_value().unwrap(){
-        gpio::GpioValue::High => {pressed = false;},
-        gpio::GpioValue::Low => { //a button press actually pulls the pin low
-            if !pressed{
-            pressed = true;
-            match alert(){
-                Ok(_) => {
-                    println!("success!");
-                    success_flash();
-                }
-                Err(e) => {println!("ERROR: {}",e);
-            on_failure();}
-    }}}}}}
+spawn_button();
+    }}
 
 fn alert() -> std::io::Result<()> {
     let hostname: String;
@@ -44,7 +32,7 @@ fn alert() -> std::io::Result<()> {
         Err(_) => {println!("Fault when reading data!");}}
     Ok(())
 }
-fn success_flash(){
+/*fn success_flash(){
     let mut value = false;
     let mut light: gpio::sysfs::SysFsGpioOutput;
     match gpio::sysfs::SysFsGpioOutput::open(21){
@@ -59,7 +47,7 @@ fn success_flash(){
         value = !value;
         if counter > 480 {break;}
 });
-}
+}*/
 fn on_failure(){
     let mut counter = 0;
     loop{
@@ -67,9 +55,26 @@ fn on_failure(){
         counter +=1;
     match alert(){
         Ok(_) => {println!("finally got connection.");
-            success_flash();
+            //success_flash();
             break;}
         Err(_) => {
             if counter > 10{Command::new("reboot");}
             else{thread::sleep(time::Duration::from_secs(30));}
         }}}}
+fn spawn_button()-> gpio_cdev::errors::Result<()> {
+    let mut chip = Chip::new("/dev/gpiochip0")?;
+    let input = chip.get_line(15)?;
+    thread::spawn(move || loop {
+        for event in input.events(LineRequestFlags::INPUT,EventRequestFlags::BOTH_EDGES,"Button Listen Thread").unwrap(){
+            let evt = event.unwrap();
+            match evt.event_type() {
+                EventType::RisingEdge => {
+                    println!("rising edge");
+                }
+                EventType::FallingEdge => {
+                    println!("rising edge");
+                }
+        }
+}});
+Ok(())
+}
