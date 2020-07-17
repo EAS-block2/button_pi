@@ -14,11 +14,10 @@ fn main(){
     let mut pressed = false;
     let mut server_address: String = config.server_addr;
     match &config.alarm_mode{
-        1 => server_address.push_str(": 5432"),
-        2 => server_address.push_str(": 5433"),
+        1 => server_address.push_str(":5432"),
+        2 => server_address.push_str(":5433"),
         _ => panic!("Unrecognized Alarm Mode!"),
     }
-    println!("read alarm mode: {}, set server addr: {}", &config.alarm_mode, &server_address);
     loop{
     thread::sleep(time::Duration::from_millis(100));
     match button.get_value().unwrap(){
