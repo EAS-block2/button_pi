@@ -25,23 +25,23 @@ fn main(){
         0 => { //a button press actually pulls the pin low
             if !pressed{
             pressed = true;
-            match alert(){
+            match alert(&server_address){
                 Ok(_) => {
                     println!("success!");
                     match success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
                 }
                 Err(e) => {println!("ERROR: {}",e);
-            on_failure();}
+            on_failure(&server_address);}
     }}}
     _ => {println!("Got other input");}}}}
 
-fn alert() -> std::io::Result<()> {
+fn alert(server_address: &String) -> std::io::Result<()> {
     let hostname: String;
     match dns_lookup::get_hostname(){
         Ok(hostn) => {hostname = hostn;}
         Err(_) => {hostname = "unknown".to_string();}
     }
-    let mut stream = TcpStream::connect("192.168.1.162:5433")?;
+    let mut stream = TcpStream::connect(server_address)?;
     let to_send = hostname.into_bytes();
     stream.write(to_send.as_slice())?;
     let mut data = [0 as u8; 50];
@@ -68,12 +68,12 @@ fn success_flash() -> gpio_cdev::errors::Result<()>{
 });
 Ok(())
 }
-fn on_failure(){
+fn on_failure(server_address: &String){
     let mut counter = 0;
     loop{
         println!("in failure mode");
         counter +=1;
-    match alert(){
+    match alert(server_address){
         Ok(_) => {println!("finally got connection.");
         match success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
             break;}
