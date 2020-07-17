@@ -2,12 +2,22 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::process::Command;
 use dns_lookup;
+use serde_yaml;
+use serde::Deserialize;
 use std::{thread, time, str};
 use gpio_cdev::{Chip, LineRequestFlags};
 fn main(){
+    let conf_f = std::fs::File::open("/home/pi/config.yaml").expect("can't find config");
+    let config: Config = serde_yaml::from_reader(conf_f).expect("Bad YAML config file!");
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let button = chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin").unwrap();
     let mut pressed = false;
+    let mut server_address: String = config.server_addr;
+    match config.alarm_mode{
+        1 => server_address.push_str("5432"),
+        2 => server_address.push_str("5433"),
+        _ => panic!("Unrecognized Alarm Mode!"),
+    }
     loop{
     thread::sleep(time::Duration::from_millis(100));
     match button.get_value().unwrap(){
@@ -71,3 +81,8 @@ fn on_failure(){
             if counter > 10{Command::new("reboot");}
             else{thread::sleep(time::Duration::from_secs(30));}
         }}}}
+#[derive(Deserialize)]
+struct Config{
+    server_addr: String,
+    alarm_mode: u8,
+}
