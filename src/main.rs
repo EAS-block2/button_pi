@@ -8,6 +8,7 @@ use serde::Deserialize;
 use std::{thread, time, str};
 use gpio_cdev::{Chip, LineRequestFlags};
 fn main(){
+    println!("starting");
     init();
     loop{
         println!("heartbeat");
@@ -20,8 +21,8 @@ fn init(){
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let g_in = chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin").unwrap();
     let g_out = 21;
-    let s_in = chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin").unwrap();
-    let s_out = 21;
+    let s_in = chip.get_line(23).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin").unwrap();
+    let s_out = 12;
     let mut gen_addr: String = config.server_addr;
     let mut sil_addr = gen_addr.clone();
     gen_addr.push_str(&config.general_port);
