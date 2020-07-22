@@ -1,4 +1,4 @@
-//TODO: change structure to allow for muliple hardware buttons to activate different alarms
+//TODO: bad socketaddr error, alarm getting activated w/o press
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::process::Command;
@@ -55,12 +55,12 @@ impl Alarm{
         match self.input.get_value().unwrap(){
             1 => {self.pressed = false;},
             0 => { //a button press actually pulls the pin low
+                println!("Alarm for {} got button press", self.address);
                 if !self.pressed{
                 self.pressed = true;
                 match self.alert(){
                     Ok(_) => {
                         println!("success!");
-                        //match success_flash(self.output){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
                     }
                     Err(e) => {println!("ERROR: {}",e);
                 self.on_failure();}
