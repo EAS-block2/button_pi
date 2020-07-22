@@ -1,4 +1,3 @@
-//TODO: bad socketaddr error, alarm getting activated w/o press
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::process::Command;
@@ -54,8 +53,7 @@ impl Alarm{
     fn run(&mut self){
         match self.input.get_value().unwrap(){
             1 => {self.pressed = false;},
-            0 => { //a button press actually pulls the pin low
-                println!("Alarm for {} got button press", self.address);
+            0 => { //a button press pulls the pin low
                 if !self.pressed{
                 self.pressed = true;
                 match self.alert(){
