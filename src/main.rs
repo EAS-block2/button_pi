@@ -14,7 +14,7 @@ fn main(){
     }
 }
 fn init() {
-    let conf_f = std::fs::File::open("/home/pi/config.yaml").expect("can't find config");
+    let conf_f = std::fs::File::open("/home/ubuntu/config.yaml").expect("can't find config");
     let config: Config = serde_yaml::from_reader(conf_f).expect("Bad YAML config file!");
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     match chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
