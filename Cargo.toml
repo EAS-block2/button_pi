@@ -1,6 +1,6 @@
 [package]
 name = "button_pi"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["jake"]
 edition = "2018"
 
@@ -10,4 +10,5 @@ edition = "2018"
 dns-lookup = "1.0.3"
 gpio-cdev = "0.2"
 serde_yaml = "0.8"
+crossbeam-channel = "0.4"
 serde = { version = "1.0", features = ["derive"] }
