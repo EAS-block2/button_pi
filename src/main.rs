@@ -14,9 +14,10 @@ fn main(){
     }
 }
 fn init() {
-    let conf_f = std::fs::File::open("/home/ubuntu/config.yaml").expect("can't find config");
+    let conf_f = std::fs::File::open("/home/pi/config.yaml").expect("can't find config");
     let config: Config = serde_yaml::from_reader(conf_f).expect("Bad YAML config file!");
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
+    if config.alm_general{
     match chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
         Ok(g_in) => {
             let g_out = 21;
@@ -28,7 +29,8 @@ fn init() {
                 thread::sleep(time::Duration::from_millis(100))});
         }
         Err(_) => {println!("General Alm pin already registered, skipping.")}
-    }
+    }}
+    if config.alm_silent{
     match chip.get_line(23).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
     Ok(s_in) => {
         let s_out = 12;
@@ -40,6 +42,7 @@ fn init() {
             thread::sleep(time::Duration::from_millis(100))});
     }
     Err(_) => {println!("Silent Alm pin already registered, skipping.")}
+}
 }}
 
 #[derive(Deserialize)]
@@ -47,6 +50,8 @@ struct Config{
     server_addr: String,
     general_port: String,
     silent_port: String,
+    alm_general: bool,
+    alm_silent: bool,
 }
 struct Alarm{
     input: gpio_cdev::LineHandle,
@@ -56,7 +61,6 @@ struct Alarm{
 }
 impl Alarm{
     fn run(&mut self){
-        println!("{} Sent Heartbeat", self.address);
         match self.input.get_value().unwrap(){
             1 => {self.pressed = false;},
             0 => { //a button press pulls the pin low
@@ -94,7 +98,7 @@ impl Alarm{
     fn on_failure(&self){
         let mut counter = 0;
         loop{
-            println!("in failure mode");
+            println!("in failure mode for {}", self.address);
             counter +=1;
         match self.alert(){
             Ok(_) => {println!("finally got connection.");
