@@ -69,6 +69,7 @@ impl Alarm{
                 match self.alert(){
                     Ok(_) => {
                         println!("success!");
+                        match self.success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
                     }
                     Err(e) => {println!("ERROR: {}",e);
                 self.on_failure();}
