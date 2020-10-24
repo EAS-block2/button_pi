@@ -1,1 +1,13 @@
-
+#set address manually
+server_addr: easops
+#should match the config for ops server: subseqent ports will only be used if each before it has failed.
+general_ports:
+  - 5432
+  - 6432
+silent_ports:
+  - 5433
+  - 6433
+#if button should handle general alarm requests (pin 15)
+alm_general: true
+#if button should handle silent alarm requests (pin 23)
+alm_silent: true

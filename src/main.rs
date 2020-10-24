@@ -20,10 +20,7 @@ fn init() {
     if config.alm_general{
     match chip.get_line(15).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
         Ok(g_in) => {
-            let g_out = 21;
-            let mut gen_addr: String = (&config.server_addr).to_string();
-            gen_addr.push_str(&config.general_port);
-            let mut gen_alm = Alarm{address: gen_addr, input: g_in, output: g_out, pressed: false};
+            let mut gen_alm = Alarm{address: (&config.server_addr).to_string(), ports: config.general_ports, input: g_in, output: 21, pressed: false};
             thread::spawn(move || loop{
                 gen_alm.run();
                 thread::sleep(time::Duration::from_millis(100))});
@@ -33,10 +30,7 @@ fn init() {
     if config.alm_silent{
     match chip.get_line(23).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
     Ok(s_in) => {
-        let s_out = 12;
-        let mut sil_addr: String = (&config.server_addr).to_string();
-        sil_addr.push_str(&config.silent_port);
-        let mut sil_alm = Alarm{address: sil_addr, input: s_in, output: s_out, pressed: false};
+        let mut sil_alm = Alarm{address: (&config.server_addr).to_string(), ports: config.silent_ports, input: s_in, output: 12, pressed: false};
         thread::spawn(move || loop{
             sil_alm.run();
             thread::sleep(time::Duration::from_millis(100))});
@@ -48,8 +42,8 @@ fn init() {
 #[derive(Deserialize)]
 struct Config{
     server_addr: String,
-    general_port: String,
-    silent_port: String,
+    general_ports: Vec<u32>,
+    silent_ports: Vec<u32>,
     alm_general: bool,
     alm_silent: bool,
 }
@@ -57,6 +51,7 @@ struct Alarm{
     input: gpio_cdev::LineHandle,
     output: u32,
     address: String,
+    ports: Vec<u32>,
     pressed: bool,
 }
 impl Alarm{
@@ -66,7 +61,7 @@ impl Alarm{
             0 => { //a button press pulls the pin low
                 if !self.pressed{
                 self.pressed = true;
-                match self.alert(){
+                match self.alert(&self.ports[0]){
                     Ok(_) => {
                         println!("success!");
                         match self.success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
@@ -76,13 +71,15 @@ impl Alarm{
         }}}
         _ => {println!("Got improper input");}}
     }
-    fn alert (&self) -> std::io::Result<()> {
+    fn alert(&self, port: &u32) -> std::io::Result<()> {
         let hostname: String;
         match dns_lookup::get_hostname(){
             Ok(hostn) => {hostname = hostn;}
             Err(_) => {hostname = "unknown".to_string();}
         }
-        let mut stream = TcpStream::connect(&self.address)?;
+        let mut addr = self.address.clone();
+        addr.push_str(&port.to_string());
+        let mut stream = TcpStream::connect(addr)?;
         let to_send = hostname.into_bytes();
         stream.write(to_send.as_slice())?;
         let mut data = [0 as u8; 50];
@@ -99,17 +96,18 @@ impl Alarm{
     
     fn on_failure(&self){
         let mut counter = 0;
-        loop{
+        'outer: loop{
             println!("in failure mode for {}", self.address);
             counter +=1;
-        match self.alert(){
+            for i in &self.ports{
+        match self.alert(i){
             Ok(_) => {println!("finally got connection.");
             match self.success_flash(){Ok(_)=>(),Err(_)=>{println!("already flashing");}}
-                break;}
+                break 'outer;}
             Err(_) => {
                 if counter > 10{panic!("cannot connect to server");}
                 else{thread::sleep(time::Duration::from_secs(30));}
-            }}}}
+            }}}}}
 
     fn success_flash(&self) -> gpio_cdev::errors::Result<()>{
         let mut value = false;
