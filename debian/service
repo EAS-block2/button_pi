@@ -1,0 +1,10 @@
+[Unit]
+Description=Emergency Alert System Button Software
+
+[Service]
+ExecStart=/usr/bin/button_pi
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

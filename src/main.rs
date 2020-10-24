@@ -96,6 +96,7 @@ impl Alarm{
 
         Ok(())
     }
+    
     fn on_failure(&self){
         let mut counter = 0;
         loop{
@@ -109,6 +110,7 @@ impl Alarm{
                 if counter > 10{panic!("cannot connect to server");}
                 else{thread::sleep(time::Duration::from_secs(30));}
             }}}}
+
     fn success_flash(&self) -> gpio_cdev::errors::Result<()>{
         let mut value = false;
         let mut counter = 0;

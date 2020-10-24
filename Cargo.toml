@@ -12,3 +12,8 @@ gpio-cdev = "0.2"
 serde_yaml = "0.8"
 crossbeam-channel = "0.4"
 serde = { version = "1.0", features = ["derive"] }
+
+[package.metadata.deb]
+assets = ["config.yaml", "home/pi", "644"]
+maintainer-scripts = "debian/"
+systemd-units = { enable = true }
