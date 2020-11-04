@@ -25,7 +25,7 @@ fn init() {
                 gen_alm.run();
                 thread::sleep(time::Duration::from_millis(100))});
         }
-        Err(_) => {println!("General Alm pin already registered, skipping.")}
+        Err(e) => {println!("General Alm pin registration failure: {}",e)}
     }}
     if config.alm_silent{
     match chip.get_line(23).unwrap().request(LineRequestFlags::INPUT, 1, "Button Switch pin"){
@@ -35,7 +35,7 @@ fn init() {
             sil_alm.run();
             thread::sleep(time::Duration::from_millis(100))});
     }
-    Err(_) => {println!("Silent Alm pin already registered, skipping.")}
+    Err(e) => {println!("Silent Alm pin registration failure: {}",e)}
 }
 }}
 
@@ -60,6 +60,7 @@ impl Alarm{
             1 => {self.pressed = false;},
             0 => { //a button press pulls the pin low
                 if !self.pressed{
+                println!("Button Pressed");
                 self.pressed = true;
                 match self.alert(&self.ports[0]){
                     Ok(_) => {
@@ -97,7 +98,7 @@ impl Alarm{
     fn on_failure(&self){
         let mut counter = 0;
         'outer: loop{
-            println!("in failure mode for {}", self.address);
+            println!("in failure mode");
             counter +=1;
             for i in &self.ports{
         match self.alert(i){
@@ -116,6 +117,7 @@ impl Alarm{
         let output = chip.get_line(self.output)?.request(LineRequestFlags::OUTPUT, 1, "Button Light pin")?;
         thread::spawn(move || 
             loop {
+            println!("flashing");
             counter +=1;
             match output.set_value(value as u8){ Ok(_)=>(), Err(_) => break}
             thread::sleep(time::Duration::from_millis(250));
